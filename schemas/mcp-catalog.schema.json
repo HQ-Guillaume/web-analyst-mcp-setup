@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Web Analyst MCP Catalog",
+  "type": "object",
+  "additionalProperties": {
+    "$ref": "#/$defs/tool"
+  },
+  "$defs": {
+    "tool": {
+      "type": "object",
+      "required": [
+        "displayName",
+        "kind",
+        "trustLevel",
+        "officialness",
+        "authFriction",
+        "runtime",
+        "dataExposure",
+        "writeCapability",
+        "riskLevel",
+        "lastVerified",
+        "author",
+        "source",
+        "authMode",
+        "serverName",
+        "credentialKeys",
+        "notes",
+        "testPrompt"
+      ],
+      "properties": {
+        "displayName": { "type": "string" },
+        "kind": { "enum": ["mcp", "api"] },
+        "transport": { "enum": ["stdio", "http", null] },
+        "runner": { "enum": ["npx", "pipx", null] },
+        "trustLevel": { "type": "string" },
+        "officialness": { "type": "string" },
+        "authFriction": { "enum": ["low", "medium", "high"] },
+        "runtime": { "enum": ["node", "python", "remote", "api"] },
+        "dataExposure": { "type": "string" },
+        "writeCapability": { "type": "string" },
+        "riskLevel": { "enum": ["low", "medium", "high"] },
+        "lastVerified": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+        "author": { "type": "string" },
+        "source": { "type": "string" },
+        "authMode": { "type": "string" },
+        "package": { "type": ["string", "null"] },
+        "url": { "type": ["string", "null"] },
+        "urlEnvKey": { "type": "string" },
+        "serverName": { "type": "string" },
+        "defaultProvider": { "type": "string" },
+        "startArgs": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "requiredScopes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "requiredGoogleServices": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "credentialKeys": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "optionalCredentialKeys": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "authCommand": { "type": ["string", "null"] },
+        "notes": { "type": "string" },
+        "testPrompt": { "type": "string" },
+        "providers": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/provider"
+          }
+        }
+      }
+    },
+    "provider": {
+      "type": "object",
+      "required": [
+        "displayName",
+        "trustLevel",
+        "officialness",
+        "authFriction",
+        "runtime",
+        "dataExposure",
+        "writeCapability",
+        "riskLevel",
+        "lastVerified",
+        "authMode",
+        "serverName",
+        "notes",
+        "testPrompt"
+      ],
+      "additionalProperties": true
+    }
+  }
+}

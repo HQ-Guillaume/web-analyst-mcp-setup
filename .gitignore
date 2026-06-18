@@ -1,0 +1,11 @@
+secrets/.env.local
+secrets/*.json
+secrets/*.token
+config/tool-selection.json
+generated/*
+!.gitkeep
+.mcp.json
+.codex/config.toml
+.gemini/settings.json
+node_modules/
+npm-debug.log*

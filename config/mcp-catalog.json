@@ -1,0 +1,465 @@
+{
+  "googleDrive": {
+    "displayName": "Google Drive",
+    "kind": "mcp",
+    "transport": "stdio",
+    "runner": "npx",
+    "trustLevel": "day-one-node-default",
+    "officialness": "trusted-third-party",
+    "authFriction": "medium",
+    "runtime": "node",
+    "dataExposure": "local-mcp-to-google-apis",
+    "writeCapability": "read-only-default",
+    "riskLevel": "medium",
+    "lastVerified": "2026-06-18",
+    "author": "piotr-agier",
+    "source": "https://github.com/piotr-agier/google-drive-mcp",
+    "authMode": "company_oauth_browser",
+    "package": "@piotr-agier/google-drive-mcp@latest",
+    "url": null,
+    "serverName": "google-drive",
+    "defaultProvider": "google-drive-local-node-fallback",
+    "requiredScopes": [
+      "https://www.googleapis.com/auth/drive.readonly"
+    ],
+    "credentialKeys": [
+      "GOOGLE_OAUTH_CLIENT_JSON",
+      "GDRIVE_CREDENTIALS_PATH"
+    ],
+    "optionalCredentialKeys": [
+      "GOOGLE_CLIENT_ID",
+      "GOOGLE_CLIENT_SECRET",
+      "GOOGLE_ADC_CLIENT_JSON",
+      "GDRIVE_OAUTH_PATH"
+    ],
+    "authCommand": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\\WebAnalystSetup.ps1 -Action GoogleOAuthFile; powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\\WebAnalystSetup.ps1 -Action RunMcp -ServerName google-drive -Runner npx -Package \"@piotr-agier/google-drive-mcp@latest\" -McpArgs auth",
+    "notes": "Default day-one Node path for Google Drive because it is easy to run locally with npx and browser OAuth. It is not Google official and can request broad Drive/Docs/Sheets/Slides/Calendar scopes depending on configuration, so use current-company approved OAuth credentials and prefer read-only scopes where possible. Use provider google-drive-official-remote when the selected MCP client and company policy support Google's official remote MCP custom OAuth route.",
+    "testPrompt": "List 5 recent Google Drive files.",
+    "providers": {
+      "google-drive-official-remote": {
+        "displayName": "Google Drive (official remote fallback)",
+        "transport": "http",
+        "runner": null,
+        "trustLevel": "first-party-preview",
+        "officialness": "first-party",
+        "authFriction": "high",
+        "runtime": "remote",
+        "dataExposure": "google-remote-mcp",
+        "writeCapability": "optional-drive-file",
+        "riskLevel": "medium",
+        "lastVerified": "2026-06-18",
+        "author": "Google Workspace",
+        "source": "https://developers.google.com/workspace/drive/api/guides/configure-mcp-server",
+        "authMode": "static_oauth_client",
+        "package": null,
+        "url": "https://drivemcp.googleapis.com/mcp/v1",
+        "serverName": "google-drive",
+        "requiredScopes": [
+          "https://www.googleapis.com/auth/drive.readonly",
+          "https://www.googleapis.com/auth/drive.file"
+        ],
+        "requiredGoogleServices": [
+          "drive.googleapis.com",
+          "drivemcp.googleapis.com"
+        ],
+        "credentialKeys": [
+          "GOOGLE_CLIENT_ID",
+          "GOOGLE_CLIENT_SECRET"
+        ],
+        "optionalCredentialKeys": [
+          "GOOGLE_PROJECT_ID"
+        ],
+        "authCommand": null,
+        "notes": "Google's official Drive remote MCP in Developer Preview. Prefer this when the selected MCP client can pass static OAuth client credentials for remote MCP servers and company policy allows it.",
+        "testPrompt": "List 5 recent Google Drive files."
+      }
+    }
+  },
+  "gmail": {
+    "displayName": "Gmail",
+    "kind": "mcp",
+    "transport": "stdio",
+    "runner": "npx",
+    "trustLevel": "day-one-node-default",
+    "officialness": "trusted-third-party",
+    "authFriction": "medium",
+    "runtime": "node",
+    "dataExposure": "local-mcp-to-google-apis",
+    "writeCapability": "modify-scope-default",
+    "riskLevel": "high",
+    "lastVerified": "2026-06-18",
+    "author": "gongrzhe",
+    "source": "https://github.com/GongRzhe/Gmail-MCP-Server",
+    "authMode": "company_oauth_browser",
+    "package": "@gongrzhe/server-gmail-autoauth-mcp@latest",
+    "url": null,
+    "serverName": "gmail",
+    "defaultProvider": "gmail-local-node-fallback",
+    "requiredScopes": [
+      "https://www.googleapis.com/auth/gmail.modify",
+      "https://www.googleapis.com/auth/gmail.settings.basic"
+    ],
+    "credentialKeys": [
+      "GOOGLE_OAUTH_CLIENT_JSON",
+      "GMAIL_CREDENTIALS_PATH"
+    ],
+    "optionalCredentialKeys": [
+      "GOOGLE_CLIENT_ID",
+      "GOOGLE_CLIENT_SECRET",
+      "GOOGLE_ADC_CLIENT_JSON"
+    ],
+    "authCommand": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\\WebAnalystSetup.ps1 -Action GoogleOAuthFile; powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\\WebAnalystSetup.ps1 -Action RunMcp -ServerName gmail -Runner npx -Package \"@gongrzhe/server-gmail-autoauth-mcp@latest\" -McpArgs auth",
+    "notes": "Default day-one Node path for Gmail because it is easy to run locally with npx and browser OAuth. It is a popular community MCP, not Google official, and currently requests Gmail modify and settings scopes during auth, so treat it as stronger than read-only. Use provider gmail-official-remote when the selected MCP client and company policy support Google's official remote MCP custom OAuth route.",
+    "testPrompt": "List Gmail labels.",
+    "providers": {
+      "gmail-official-remote": {
+        "displayName": "Gmail (official remote fallback)",
+        "transport": "http",
+        "runner": null,
+        "trustLevel": "first-party-preview",
+        "officialness": "first-party",
+        "authFriction": "high",
+        "runtime": "remote",
+        "dataExposure": "google-remote-mcp",
+        "writeCapability": "compose-capable",
+        "riskLevel": "medium",
+        "lastVerified": "2026-06-18",
+        "author": "Google Workspace",
+        "source": "https://developers.google.com/workspace/gmail/api/guides/configure-mcp-server",
+        "authMode": "static_oauth_client",
+        "package": null,
+        "url": "https://gmailmcp.googleapis.com/mcp/v1",
+        "serverName": "gmail",
+        "requiredScopes": [
+          "https://www.googleapis.com/auth/gmail.readonly",
+          "https://www.googleapis.com/auth/gmail.compose"
+        ],
+        "requiredGoogleServices": [
+          "gmail.googleapis.com",
+          "gmailmcp.googleapis.com"
+        ],
+        "credentialKeys": [
+          "GOOGLE_CLIENT_ID",
+          "GOOGLE_CLIENT_SECRET"
+        ],
+        "optionalCredentialKeys": [
+          "GOOGLE_PROJECT_ID"
+        ],
+        "authCommand": null,
+        "notes": "Google's official Gmail remote MCP in Developer Preview. Prefer this when the selected MCP client can pass static OAuth client credentials for remote MCP servers and company policy allows it.",
+        "testPrompt": "List Gmail labels."
+      }
+    }
+  },
+  "googleTagManager": {
+    "displayName": "Google Tag Manager",
+    "kind": "mcp",
+    "transport": "stdio",
+    "runner": "npx",
+    "trustLevel": "remote-oauth",
+    "officialness": "trusted-third-party",
+    "authFriction": "low",
+    "runtime": "remote",
+    "dataExposure": "third-party-remote-mcp",
+    "writeCapability": "optional-container-write",
+    "riskLevel": "medium",
+    "lastVerified": "2026-06-18",
+    "author": "Stape",
+    "source": "https://github.com/stape-io/google-tag-manager-mcp-server",
+    "authMode": "user_oauth_remote",
+    "package": "mcp-remote@latest",
+    "serverName": "gtm",
+    "startArgs": [
+      "https://gtm-mcp.stape.ai/mcp"
+    ],
+    "credentialKeys": [],
+    "authCommand": null,
+    "notes": "Personal OAuth mode through Stape's hosted remote GTM MCP. The user signs in with their own Google account. No service-account email is required.",
+    "testPrompt": "List accessible GTM accounts or containers using the signed-in Google account."
+  },
+  "googleAnalytics": {
+    "displayName": "Google Analytics 4",
+    "kind": "mcp",
+    "transport": "stdio",
+    "runner": "pipx",
+    "trustLevel": "first-party-experimental",
+    "officialness": "first-party",
+    "authFriction": "high",
+    "runtime": "python",
+    "dataExposure": "local-mcp-to-google-apis",
+    "writeCapability": "read-only-default",
+    "riskLevel": "medium",
+    "lastVerified": "2026-06-18",
+    "author": "Google Analytics",
+    "source": "https://github.com/googleanalytics/google-analytics-mcp",
+    "authMode": "company_oauth_adc",
+    "package": "analytics-mcp",
+    "serverName": "ga4",
+    "defaultProvider": "googleanalytics-official-adc",
+    "startArgs": [],
+    "requiredGoogleServices": [
+      "analyticsadmin.googleapis.com",
+      "analyticsdata.googleapis.com"
+    ],
+    "requiredScopes": [
+      "https://www.googleapis.com/auth/analytics.readonly",
+      "https://www.googleapis.com/auth/cloud-platform"
+    ],
+    "credentialKeys": [
+      "GOOGLE_APPLICATION_CREDENTIALS"
+    ],
+    "optionalCredentialKeys": [
+      "GOOGLE_PROJECT_ID",
+      "GOOGLE_CLIENT_ID",
+      "GOOGLE_CLIENT_SECRET",
+      "GOOGLE_ADC_CLIENT_JSON"
+    ],
+    "authCommand": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\\WebAnalystSetup.ps1 -Action GoogleAdcLogin",
+    "notes": "Official Google Analytics MCP. Use user ADC/browser login with the user's own Google account and approved company OAuth credentials when available. Keep this as the only GA4 MCP provider until the user explicitly requests a new one.",
+    "testPrompt": "List GA4 account summaries or run a minimal read-only report."
+  },
+  "browserQa": {
+    "displayName": "Browser QA / Playwright",
+    "kind": "mcp",
+    "transport": "stdio",
+    "runner": "npx",
+    "trustLevel": "first-party",
+    "officialness": "first-party",
+    "authFriction": "low",
+    "runtime": "node",
+    "dataExposure": "local-browser-session",
+    "writeCapability": "browser-interaction-capable",
+    "riskLevel": "medium",
+    "lastVerified": "2026-06-18",
+    "author": "Microsoft Playwright",
+    "source": "https://playwright.dev/docs/getting-started-mcp",
+    "authMode": "none",
+    "package": "@playwright/mcp@latest",
+    "serverName": "playwright",
+    "startArgs": [],
+    "credentialKeys": [],
+    "authCommand": null,
+    "notes": "Default browser QA MCP. Use for user journeys, consent flows, forms, ecommerce paths, screenshots, and repeatable browser interaction. Prefer this before Chrome DevTools when the task is normal page interaction rather than deep debugging.",
+    "testPrompt": "Open a simple public page and report the page title."
+  },
+  "browserDebug": {
+    "displayName": "Browser Debug / Chrome DevTools",
+    "kind": "mcp",
+    "transport": "stdio",
+    "runner": "npx",
+    "trustLevel": "first-party-advanced",
+    "officialness": "first-party",
+    "authFriction": "low",
+    "runtime": "node",
+    "dataExposure": "local-browser-session",
+    "writeCapability": "browser-debug-interaction-capable",
+    "riskLevel": "medium",
+    "lastVerified": "2026-06-18",
+    "author": "Chrome DevTools",
+    "source": "https://github.com/ChromeDevTools/chrome-devtools-mcp",
+    "authMode": "none",
+    "package": "chrome-devtools-mcp@latest",
+    "serverName": "chrome-devtools",
+    "startArgs": [
+      "--no-usage-statistics"
+    ],
+    "credentialKeys": [],
+    "authCommand": null,
+    "notes": "Advanced browser debugging MCP. Use for network requests, console errors, screenshots, performance traces, and DevTools-level investigation. It exposes browser content to the MCP client; tell the user before using it on logged-in or sensitive pages. Usage statistics are disabled by default in this kit.",
+    "testPrompt": "Open a public page and list console errors or key network requests."
+  },
+  "bigQuery": {
+    "displayName": "BigQuery",
+    "kind": "mcp",
+    "transport": "http",
+    "trustLevel": "first-party-preview",
+    "officialness": "first-party",
+    "authFriction": "medium",
+    "runtime": "remote",
+    "dataExposure": "google-remote-mcp",
+    "writeCapability": "query-cost-capable",
+    "riskLevel": "high",
+    "lastVerified": "2026-06-18",
+    "author": "Google Cloud BigQuery",
+    "source": "https://docs.cloud.google.com/bigquery/docs/use-bigquery-mcp",
+    "authMode": "company_oauth_remote",
+    "url": "https://bigquery.googleapis.com/mcp",
+    "serverName": "bigquery",
+    "requiredGoogleServices": [
+      "bigquery.googleapis.com"
+    ],
+    "requiredScopes": [
+      "https://www.googleapis.com/auth/bigquery"
+    ],
+    "credentialKeys": [],
+    "optionalCredentialKeys": [
+      "GOOGLE_PROJECT_ID",
+      "GOOGLE_CLIENT_ID",
+      "GOOGLE_CLIENT_SECRET",
+      "BIGQUERY_PROJECT_ID",
+      "BIGQUERY_DATASETS"
+    ],
+    "authCommand": null,
+    "notes": "Official remote BigQuery MCP. Prefer company-approved Google Cloud IAM with least-privilege roles such as MCP Tool User, BigQuery Job User, and BigQuery Data Viewer. Use read-only datasets, dry-runs or query limits where possible, and ask for project/dataset IDs before analysis. Fallback: Google MCP Toolbox for Databases when the company needs local control, parameterized tools, or allowlisted queries.",
+    "testPrompt": "List accessible BigQuery projects or datasets, then run only a small metadata/read-only test."
+  },
+  "clickup": {
+    "displayName": "ClickUp",
+    "kind": "mcp",
+    "transport": "http",
+    "trustLevel": "first-party",
+    "officialness": "first-party",
+    "authFriction": "low",
+    "runtime": "remote",
+    "dataExposure": "vendor-remote-mcp",
+    "writeCapability": "workspace-write-capable",
+    "riskLevel": "medium",
+    "lastVerified": "2026-06-18",
+    "author": "ClickUp",
+    "source": "https://developer.clickup.com/docs/connect-an-ai-assistant-to-clickups-mcp-server",
+    "authMode": "user_oauth_remote",
+    "url": "https://mcp.clickup.com/mcp",
+    "serverName": "clickup",
+    "credentialKeys": [],
+    "authCommand": "codex mcp login clickup",
+    "notes": "Recommended official remote MCP. Use browser OAuth from the MCP client when prompted.",
+    "testPrompt": "List ClickUp workspaces."
+  },
+  "trello": {
+    "displayName": "Trello",
+    "kind": "mcp",
+    "transport": "stdio",
+    "runner": "npx",
+    "trustLevel": "candidate",
+    "officialness": "candidate-third-party",
+    "authFriction": "medium",
+    "runtime": "node",
+    "dataExposure": "local-mcp-to-vendor-api",
+    "writeCapability": "board-write-capable",
+    "riskLevel": "medium",
+    "lastVerified": "2026-06-18",
+    "author": "Jarad DeLorenzo",
+    "source": "https://github.com/delorenj/mcp-server-trello",
+    "authMode": "api_token",
+    "package": "@delorenj/mcp-server-trello@latest",
+    "serverName": "trello",
+    "startArgs": [],
+    "credentialKeys": [
+      "TRELLO_API_KEY",
+      "TRELLO_TOKEN"
+    ],
+    "authCommand": null,
+    "notes": "No clear first-party Trello MCP was found. This remains the current third-party candidate.",
+    "testPrompt": "List Trello boards."
+  },
+  "pianoAnalytics": {
+    "displayName": "Piano Analytics MCP",
+    "kind": "mcp",
+    "transport": "stdio",
+    "runner": "npx",
+    "trustLevel": "official-private-beta",
+    "officialness": "first-party-private-beta",
+    "authFriction": "high",
+    "runtime": "remote",
+    "dataExposure": "vendor-remote-mcp",
+    "writeCapability": "analytics-read-default",
+    "riskLevel": "medium",
+    "lastVerified": "2026-06-18",
+    "author": "Piano",
+    "source": "https://analytics-docs.piano.io/en/analytics/v1/mcp",
+    "authMode": "api_header",
+    "package": "mcp-remote@latest",
+    "serverName": "piano",
+    "startArgs": [
+      "https://analytics-api-eu.piano.io/mcp/",
+      "--header",
+      "x-api-key:${PIANO_ACCESS_KEY}_${PIANO_SECRET_KEY}"
+    ],
+    "credentialKeys": [
+      "PIANO_ACCESS_KEY",
+      "PIANO_SECRET_KEY"
+    ],
+    "authCommand": null,
+    "notes": "Official Piano MCP is private beta and requires Piano whitelisting plus an access key and secret key. If beta access is not available, use pianoAnalyticsApi.",
+    "testPrompt": "Ask get_web_analytics_data for a simple traffic summary."
+  },
+  "pianoAnalyticsApi": {
+    "displayName": "Piano Analytics API Connector",
+    "kind": "api",
+    "trustLevel": "official-api",
+    "officialness": "first-party-api",
+    "authFriction": "medium",
+    "runtime": "api",
+    "dataExposure": "direct-api-call",
+    "writeCapability": "analytics-read-default",
+    "riskLevel": "medium",
+    "lastVerified": "2026-06-18",
+    "author": "Piano",
+    "source": "https://developers.piano.io/",
+    "authMode": "api_token",
+    "package": null,
+    "serverName": "piano-api",
+    "startArgs": [],
+    "credentialKeys": [
+      "PIANO_ACCESS_KEY",
+      "PIANO_SECRET_KEY",
+      "PIANO_SITE_ID"
+    ],
+    "optionalCredentialKeys": [
+      "PIANO_API_BASE_URL"
+    ],
+    "authCommand": null,
+    "notes": "Fallback path when Piano MCP beta access is not whitelisted. The agent should use direct API planning/scripts instead of MCP tools.",
+    "testPrompt": "Verify Piano API credentials and prepare a Data Query request plan."
+  },
+  "tagCommander": {
+    "displayName": "Tag Commander / Commanders Act",
+    "kind": "api",
+    "trustLevel": "manual",
+    "officialness": "vendor-api",
+    "authFriction": "high",
+    "runtime": "api",
+    "dataExposure": "direct-api-call",
+    "writeCapability": "container-write-capable",
+    "riskLevel": "high",
+    "lastVerified": "2026-06-18",
+    "author": "Commanders Act",
+    "source": "https://doc.commandersact.com/",
+    "authMode": "api_token",
+    "package": null,
+    "serverName": "tag-commander",
+    "startArgs": [],
+    "credentialKeys": [
+      "TAG_COMMANDER_API_KEY",
+      "TAG_COMMANDER_SITE_ID",
+      "TAG_COMMANDER_API_BASE_URL"
+    ],
+    "authCommand": null,
+    "notes": "No clear first-party public MCP was found. Use API credentials until a trusted MCP is supplied.",
+    "testPrompt": "Verify Tag Commander credentials and prepare a container audit plan."
+  },
+  "contentsquare": {
+    "displayName": "Contentsquare",
+    "kind": "mcp",
+    "transport": "http",
+    "trustLevel": "first-party",
+    "officialness": "first-party",
+    "authFriction": "low",
+    "runtime": "remote",
+    "dataExposure": "vendor-remote-mcp",
+    "writeCapability": "analytics-read-default",
+    "riskLevel": "medium",
+    "lastVerified": "2026-06-18",
+    "author": "Contentsquare",
+    "source": "https://support.contentsquare.com/hc/en-us/articles/41563169756945-How-to-set-up-and-use-Model-Context-Protocol-MCP",
+    "authMode": "user_oauth_remote",
+    "urlEnvKey": "CONTENTSQUARE_MCP_URL",
+    "serverName": "contentsquare",
+    "credentialKeys": [
+      "CONTENTSQUARE_MCP_URL"
+    ],
+    "authCommand": "codex mcp login contentsquare",
+    "notes": "Recommended official Contentsquare MCP. The exact URL is provided inside Contentsquare Analysis setup > Model Context Protocol, and auth is OAuth.",
+    "testPrompt": "List available Contentsquare projects."
+  }
+}

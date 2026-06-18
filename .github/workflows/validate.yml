@@ -1,0 +1,57 @@
+name: Validate kit
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  validate:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Parse JSON files
+        shell: pwsh
+        run: |
+          Get-ChildItem -Recurse -Filter *.json | ForEach-Object {
+            Write-Host "Parsing $($_.FullName)"
+            Get-Content -Raw -LiteralPath $_.FullName | ConvertFrom-Json | Out-Null
+          }
+
+      - name: Parse PowerShell
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path .\scripts\WebAnalystSetup.ps1), [ref]$tokens, [ref]$errors) | Out-Null
+          if ($errors.Count -gt 0) {
+            $errors | Format-List | Out-String | Write-Error
+            exit 1
+          }
+
+      - name: Run kit validation
+        shell: pwsh
+        run: |
+          .\scripts\WebAnalystSetup.ps1 -Action Validate
+
+      - name: Check ignored local files are not tracked
+        shell: pwsh
+        run: |
+          $forbidden = @(
+            "secrets/.env.local",
+            "config/tool-selection.json",
+            "generated/mcp.json",
+            "generated/codex.config-snippet.toml",
+            ".mcp.json",
+            ".codex/config.toml",
+            ".gemini/settings.json"
+          )
+          $tracked = git ls-files
+          $violations = $forbidden | Where-Object { $tracked -contains $_ }
+          if ($violations.Count -gt 0) {
+            Write-Error ("Forbidden local files are tracked: " + ($violations -join ", "))
+            exit 1
+          }

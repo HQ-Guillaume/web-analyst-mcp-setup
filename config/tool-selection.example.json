@@ -1,0 +1,62 @@
+{
+  "aiClients": {
+    "codex": true,
+    "claudeCode": false,
+    "geminiCli": false
+  },
+  "installScope": "user",
+  "tools": {
+    "googleDrive": {
+      "enabled": false,
+      "provider": "google-drive-local-node-fallback"
+    },
+    "gmail": {
+      "enabled": false,
+      "provider": "gmail-local-node-fallback"
+    },
+    "googleTagManager": {
+      "enabled": false,
+      "provider": "stape-gtm-remote-oauth"
+    },
+    "googleAnalytics": {
+      "enabled": false,
+      "provider": "googleanalytics-official-adc"
+    },
+    "browserQa": {
+      "enabled": false,
+      "provider": "playwright-official-mcp"
+    },
+    "browserDebug": {
+      "enabled": false,
+      "provider": "chrome-devtools-official-mcp"
+    },
+    "bigQuery": {
+      "enabled": false,
+      "provider": "google-bigquery-official-remote-mcp"
+    },
+    "clickup": {
+      "enabled": false,
+      "provider": "clickup-official-remote-oauth"
+    },
+    "trello": {
+      "enabled": false,
+      "provider": "delorenj-trello"
+    },
+    "pianoAnalytics": {
+      "enabled": false,
+      "provider": "piano-official-private-beta"
+    },
+    "pianoAnalyticsApi": {
+      "enabled": false,
+      "provider": "api-connector"
+    },
+    "tagCommander": {
+      "enabled": false,
+      "provider": "api-connector"
+    },
+    "contentsquare": {
+      "enabled": false,
+      "provider": "contentsquare-official-mcp"
+    }
+  }
+}

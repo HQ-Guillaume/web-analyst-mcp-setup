@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Web Analyst Tool Selection",
+  "type": "object",
+  "required": ["aiClients", "installScope", "tools"],
+  "properties": {
+    "profile": { "type": "string" },
+    "aiClients": {
+      "type": "object",
+      "required": ["codex", "claudeCode", "geminiCli"],
+      "properties": {
+        "codex": { "type": "boolean" },
+        "claudeCode": { "type": "boolean" },
+        "geminiCli": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "installScope": { "enum": ["user", "project"] },
+    "tools": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["enabled", "provider"],
+        "properties": {
+          "enabled": { "type": "boolean" },
+          "provider": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

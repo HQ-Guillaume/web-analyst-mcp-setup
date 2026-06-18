@@ -1,0 +1,52 @@
+# Data and Credential Safety
+
+This kit is designed for first-day onboarding on a new company PC. Its default posture is to connect only the tools the user chooses, prefer approved company credentials, and keep generated tokens out of the reusable repository.
+
+## Local Versus Remote MCPs
+
+Local MCPs run on the PC and call vendor APIs from that machine. They can still access account data after OAuth, but data is not intentionally routed through a third-party hosted MCP server.
+
+Remote MCPs are hosted by the vendor or a third party. They are easier to connect when OAuth is handled by the provider, but the MCP provider may process request metadata, prompts, tool calls, or returned data according to its own terms.
+
+Before connecting a company account to a remote MCP, confirm whether the provider is first-party, third-party, or an approved managed-auth broker.
+
+## Credential Rules
+
+- Use credentials explicitly approved for the current company or client.
+- Do not reuse credentials from a previous employer, agency, or client.
+- Prefer browser OAuth when available because the user can see and revoke the connection.
+- Store local secrets only in ignored files such as `secrets/.env.local`.
+- Never commit OAuth client secrets, access tokens, refresh tokens, API keys, service-account JSON files, or generated MCP config containing machine paths.
+- Treat token-file presence as incomplete. A connection is ready only after a harmless read-only smoke test passes.
+
+## Scope Rules
+
+Ask for the narrowest practical scope:
+
+- Drive: prefer read-only unless file creation or editing is explicitly needed.
+- Gmail: avoid send/delete flows unless the user explicitly asks for them.
+- GTM: read/list and preview first; publish only after explicit confirmation.
+- GA4: read-only reporting/admin discovery by default.
+- BigQuery: metadata or limited read-only queries first; confirm cost and dataset scope before broad SQL.
+- Browser tools: warn before using logged-in, internal, or sensitive pages.
+
+## Company IT Talking Points
+
+For IT or data teams, explain the request in terms of:
+
+- Which tools need access.
+- Whether the MCP is local, first-party remote, third-party remote, or direct API.
+- The minimum OAuth scopes or IAM roles needed.
+- Whether write actions are possible and how the user will confirm them.
+- Where tokens are stored and how they can be revoked.
+- Whether the setup is for one user, one client, or a team-wide onboarding pattern.
+
+## Revocation
+
+Most OAuth connections can be revoked from the vendor account security page. Local ignored files can be removed with:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action ResetKit
+```
+
+Do not run `ResetKit` immediately after real onboarding unless you intentionally want to disconnect the local setup.
