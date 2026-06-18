@@ -2,6 +2,14 @@
 
 Use these templates during setup when the user needs approval, credentials, or access from IT, data engineering, analytics engineering, or a vendor admin.
 
+The setup helper can also generate a selected-tool draft after `config/tool-selection.json` is prepared:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action ItRequest
+```
+
+The generated `generated/it-request.md` file is ignored by git and should be treated as local working material.
+
 ## Google OAuth Client
 
 Subject: Google OAuth client for web analyst AI tool setup

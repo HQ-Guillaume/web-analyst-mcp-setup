@@ -1,6 +1,6 @@
 # Web Analyst MCP Setup
 
-Version: 1.0.0
+Version: 1.1.0
 
 Windows-first setup kit for daily web analyst work with AI agents such as Codex, Claude Code, and Gemini CLI.
 
@@ -30,7 +30,7 @@ The agent should run the setup as a guided onboarding flow:
 4. Choose the approved credential route for each selected tool.
 5. Install only the prerequisites required by those choices.
 6. Write MCP configuration, authenticate, reload the AI client if needed, and run harmless read-only smoke tests.
-7. End with an onboarding report: ready tools, blocked tools, missing approvals, and whether reset is needed later for testing/reuse.
+7. End with an onboarding report and structured onboarding state: ready tools, blocked tools, missing approvals, and whether reset is needed later for testing/reuse.
 
 Current default paths:
 
@@ -61,8 +61,11 @@ Core reusable files:
 - `config/mcp-catalog.json`: MCP/API catalog used by the helper.
 - `config/tool-selection.example.json`: default tool choices copied to local ignored `tool-selection.json`.
 - `config/tool-profiles.json`: reusable onboarding profiles for common first-day setups.
+- `config/client-capabilities.json`: client-specific config targets and reload/login guidance.
 - `secrets/.env.template`: copied to local ignored `secrets/.env.local`.
 - `schemas/*.schema.json`: schema documentation and validation targets for catalog/selection/profile files.
+- `tests/fixtures/profile-server-names.json`: expected MCP server names for reusable profiles.
+- `scripts/lib/*.ps1`: focused helper modules for release audit, catalog review, IT requests, and fixture tests.
 - `docs/`: security guidance and IT request templates.
 - `.github/workflows/validate.yml`: GitHub Actions validation for releases and pull requests.
 - `.gitignore`: keeps credentials and generated machine-specific files out of the reusable kit.
@@ -82,24 +85,32 @@ These commands are not required in normal use. The agent should run them for you
 - `UseProfile`: applies a reusable tool profile to local ignored `config/tool-selection.json`.
 - `Validate`: validates reusable kit files, JSON, PowerShell syntax, catalog metadata, profiles, and secret hygiene.
 - `Doctor`: prints a first-day readiness report for the machine, local state, prerequisites, browser, and selected tools.
+- `ItRequest`: writes an ignored access-request draft to `generated/it-request.md`.
 - `Prereqs`: checks and installs needed prerequisites such as Node.js, Git, Python/pipx, or Google Cloud CLI depending on selected providers.
 - `CheckMcpUpdates`: checks selected MCP packages before install/config generation; npm-based MCPs should use `@latest`.
 - `Apply`: writes MCP configuration for the selected AI client.
 - `Dashboard`: prints enabled tools, missing credentials, and reconnect/auth commands in the terminal.
 - `Status`: checks selected tool status, visible MCP client state, and lightweight Google token scope/API reachability where possible.
-- `OnboardingReport`: writes an ignored handover report to `generated/onboarding-report.md`.
+- `OnboardingReport`: writes an ignored handover report to `generated/onboarding-report.md` and machine-readable state to `generated/onboarding-state.json`.
+- `CatalogReview`: writes an ignored catalog maintainability report to `generated/catalog-review.md`.
+- `TestFixtures`: checks reusable profile expectations against `tests/fixtures/profile-server-names.json`.
+- `ReleaseAudit`: validates the kit, checks tracked files for local state or credential patterns, and builds an audit archive from git.
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action Prepare
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action UseProfile -Profile analytics-core
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action Validate
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action Doctor
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action ItRequest
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action Prereqs
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action CheckMcpUpdates
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action Apply -Client Codex
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action Dashboard
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action Status
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action OnboardingReport
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action CatalogReview
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action TestFixtures
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action ReleaseAudit
 ```
 
 Google helper commands:
@@ -122,3 +133,16 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetu
 ```
 
 Do not run `ResetKit` immediately after a successful real onboarding unless you intentionally want to remove the local credentials and tokens that keep the tools working. `ResetKit` removes ignored local state and known kit-owned Google OAuth/token JSON files under `%USERPROFILE%\.web-analyst-agent`, so the folder can be compressed or reused without carrying the current PC/company connection forward.
+
+## Release Safety
+
+Before publishing or sharing the kit, the agent should run:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action Validate
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action TestFixtures
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action CatalogReview
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action ReleaseAudit
+```
+
+`ReleaseAudit` checks only tracked files and a git archive, so ignored local credentials and generated reports are not included in the release artifact.

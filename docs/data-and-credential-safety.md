@@ -16,6 +16,7 @@ Before connecting a company account to a remote MCP, confirm whether the provide
 - Do not reuse credentials from a previous employer, agency, or client.
 - Prefer browser OAuth when available because the user can see and revoke the connection.
 - Store local secrets only in ignored files such as `secrets/.env.local`.
+- If a team prefers not to place raw values in `secrets/.env.local`, use the supported `KEY_FILE` pattern from `secrets/.env.template`. Keep the main key empty, point `KEY_FILE` to an ignored local file, and let the helper read the secret at runtime.
 - Never commit OAuth client secrets, access tokens, refresh tokens, API keys, service-account JSON files, or generated MCP config containing machine paths.
 - Treat token-file presence as incomplete. A connection is ready only after a harmless read-only smoke test passes.
 
@@ -50,3 +51,13 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetu
 ```
 
 Do not run `ResetKit` immediately after real onboarding unless you intentionally want to disconnect the local setup.
+
+## Release Safety
+
+Before sharing or publishing the reusable kit, run:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action ReleaseAudit
+```
+
+The audit validates reusable files, checks tracked files for common token and machine-specific patterns, and builds a git archive from tracked files. It does not include ignored local setup files.

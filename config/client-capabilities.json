@@ -1,0 +1,42 @@
+{
+  "clients": {
+    "codex": {
+      "displayName": "Codex",
+      "configTargets": [
+        "%USERPROFILE%\\.codex\\config.toml",
+        ".codex\\config.toml"
+      ],
+      "supportsRemoteHttp": true,
+      "supportsProjectConfig": true,
+      "supportsMcpLogin": true,
+      "supportsStaticOAuthClientForRemoteMcp": "limited",
+      "restartGuidance": "Restart or reload the Codex session when new MCP servers are not visible after Apply.",
+      "notes": "Primary target for this kit. User-scope config is the default; project-scope config is available when installScope is project."
+    },
+    "claudeCode": {
+      "displayName": "Claude Code",
+      "configTargets": [
+        ".mcp.json"
+      ],
+      "supportsRemoteHttp": true,
+      "supportsProjectConfig": true,
+      "supportsMcpLogin": "client-dependent",
+      "supportsStaticOAuthClientForRemoteMcp": "client-dependent",
+      "restartGuidance": "Restart Claude Code or reload MCP servers after project .mcp.json changes.",
+      "notes": "The kit writes project .mcp.json. Agent-specific CLI commands can still be used when available."
+    },
+    "geminiCli": {
+      "displayName": "Gemini CLI",
+      "configTargets": [
+        "%USERPROFILE%\\.gemini\\settings.json",
+        ".gemini\\settings.json"
+      ],
+      "supportsRemoteHttp": true,
+      "supportsProjectConfig": true,
+      "supportsMcpLogin": "client-dependent",
+      "supportsStaticOAuthClientForRemoteMcp": "client-dependent",
+      "restartGuidance": "Restart the Gemini CLI session when newly generated MCP servers are not visible.",
+      "notes": "The kit writes settings.json-style MCP config through the same generated MCP object used for Claude."
+    }
+  }
+}

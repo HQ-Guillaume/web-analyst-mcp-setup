@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [ValidateSet("Prepare", "UseProfile", "Validate", "Doctor", "OnboardingReport", "Prereqs", "CheckMcpUpdates", "Generate", "Apply", "Status", "Dashboard", "RunMcp", "GoogleOAuthFile", "GoogleAdcLogin", "ResetKit", "ResetCodexMcp", "All")]
+    [ValidateSet("Prepare", "UseProfile", "Validate", "Doctor", "OnboardingReport", "ReleaseAudit", "CatalogReview", "ItRequest", "TestFixtures", "Prereqs", "CheckMcpUpdates", "Generate", "Apply", "Status", "Dashboard", "RunMcp", "GoogleOAuthFile", "GoogleAdcLogin", "ResetKit", "ResetCodexMcp", "All")]
     [string]$Action = "Status",
 
     [ValidateSet("All", "Codex", "Claude", "Gemini")]
@@ -21,10 +21,18 @@ $SelectionPath = Join-Path $Root "config\tool-selection.json"
 $SelectionExamplePath = Join-Path $Root "config\tool-selection.example.json"
 $CatalogPath = Join-Path $Root "config\mcp-catalog.json"
 $ProfilesPath = Join-Path $Root "config\tool-profiles.json"
+$ClientCapabilitiesPath = Join-Path $Root "config\client-capabilities.json"
 $EnvPath = Join-Path $Root "secrets\.env.local"
 $EnvTemplatePath = Join-Path $Root "secrets\.env.template"
 $GeneratedDir = Join-Path $Root "generated"
 $ScriptPath = $MyInvocation.MyCommand.Path
+$LibDir = Join-Path $PSScriptRoot "lib"
+
+if (Test-Path -LiteralPath $LibDir) {
+    Get-ChildItem -LiteralPath $LibDir -Filter "*.ps1" -File | Sort-Object Name | ForEach-Object {
+        . $_.FullName
+    }
+}
 
 function Write-Step {
     param([string]$Message)
@@ -282,6 +290,19 @@ function Import-DotEnvMap {
             [Environment]::SetEnvironmentVariable($key, $value, "Process")
         }
     }
+
+    foreach ($fileKey in @($map.Keys | Where-Object { $_ -like "*_FILE" })) {
+        $baseKey = $fileKey.Substring(0, $fileKey.Length - 5)
+        if ($map.ContainsKey($baseKey) -and -not [string]::IsNullOrWhiteSpace($map[$baseKey])) { continue }
+        $secretFilePath = [Environment]::ExpandEnvironmentVariables($map[$fileKey])
+        if ([string]::IsNullOrWhiteSpace($secretFilePath) -or -not (Test-Path -LiteralPath $secretFilePath)) { continue }
+        $secretValue = (Get-Content -Raw -LiteralPath $secretFilePath).TrimEnd("`r", "`n")
+        $map[$baseKey] = $secretValue
+        if ($IntoProcess) {
+            [Environment]::SetEnvironmentVariable($baseKey, $secretValue, "Process")
+        }
+    }
+
     return $map
 }
 
@@ -757,11 +778,18 @@ function Invoke-ValidateKit {
         "config\mcp-catalog.json",
         "config\tool-selection.example.json",
         "config\tool-profiles.json",
+        "config\client-capabilities.json",
         "secrets\.env.template",
         "scripts\WebAnalystSetup.ps1",
+        "scripts\lib\CatalogReview.ps1",
+        "scripts\lib\ItRequest.ps1",
+        "scripts\lib\ReleaseAudit.ps1",
+        "scripts\lib\TestFixtures.ps1",
         "schemas\mcp-catalog.schema.json",
         "schemas\tool-selection.schema.json",
         "schemas\tool-profiles.schema.json",
+        "schemas\client-capabilities.schema.json",
+        "tests\fixtures\profile-server-names.json",
         "docs\data-and-credential-safety.md",
         "docs\it-request-templates.md",
         "CHANGELOG.md"
@@ -775,7 +803,8 @@ function Invoke-ValidateKit {
     $catalog = $null
     $selectionExample = $null
     $profiles = $null
-    foreach ($relative in @("config\mcp-catalog.json", "config\tool-selection.example.json", "config\tool-profiles.json", "schemas\mcp-catalog.schema.json", "schemas\tool-selection.schema.json", "schemas\tool-profiles.schema.json")) {
+    $clientCapabilities = $null
+    foreach ($relative in @("config\mcp-catalog.json", "config\tool-selection.example.json", "config\tool-profiles.json", "config\client-capabilities.json", "tests\fixtures\profile-server-names.json", "schemas\mcp-catalog.schema.json", "schemas\tool-selection.schema.json", "schemas\tool-profiles.schema.json", "schemas\client-capabilities.schema.json")) {
         $path = Join-Path $Root $relative
         if (Test-Path -LiteralPath $path) {
             try {
@@ -783,17 +812,22 @@ function Invoke-ValidateKit {
                 if ($relative -eq "config\mcp-catalog.json") { $catalog = $json }
                 if ($relative -eq "config\tool-selection.example.json") { $selectionExample = $json }
                 if ($relative -eq "config\tool-profiles.json") { $profiles = $json }
+                if ($relative -eq "config\client-capabilities.json") { $clientCapabilities = $json }
             } catch {
                 $errors += "Invalid JSON in $relative`: $($_.Exception.Message)"
             }
         }
     }
 
-    $tokens = $null
-    $parseErrors = $null
-    [System.Management.Automation.Language.Parser]::ParseFile($ScriptPath, [ref]$tokens, [ref]$parseErrors) | Out-Null
-    foreach ($parseError in @($parseErrors)) {
-        $errors += "PowerShell syntax error at $($parseError.Extent.StartLineNumber): $($parseError.Message)"
+    $scriptFiles = @(Get-ChildItem -LiteralPath (Join-Path $Root "scripts") -Recurse -Filter "*.ps1" -File)
+    foreach ($scriptFile in $scriptFiles) {
+        $tokens = $null
+        $parseErrors = $null
+        [System.Management.Automation.Language.Parser]::ParseFile($scriptFile.FullName, [ref]$tokens, [ref]$parseErrors) | Out-Null
+        foreach ($parseError in @($parseErrors)) {
+            $relativeScript = $scriptFile.FullName.Substring($Root.Path.Length + 1)
+            $errors += "PowerShell syntax error in $relativeScript at $($parseError.Extent.StartLineNumber): $($parseError.Message)"
+        }
     }
 
     if ($catalog) {
@@ -861,10 +895,20 @@ function Invoke-ValidateKit {
         }
     }
 
+    if ($clientCapabilities) {
+        foreach ($clientEntry in $clientCapabilities.clients.PSObject.Properties) {
+            foreach ($field in @("displayName", "configTargets", "supportsRemoteHttp", "supportsProjectConfig", "supportsMcpLogin", "restartGuidance", "notes")) {
+                if (-not (Test-ObjectProperty -Object $clientEntry.Value -Name $field)) {
+                    $errors += "Client capability '$($clientEntry.Name)' is missing field '$field'."
+                }
+            }
+        }
+    }
+
     $gitignore = Join-Path $Root ".gitignore"
     if (Test-Path -LiteralPath $gitignore) {
         $ignoreText = Get-Content -Raw -LiteralPath $gitignore
-        foreach ($pattern in @("secrets/.env.local", "secrets/*.json", "secrets/*.token", "config/tool-selection.json", "generated/*")) {
+        foreach ($pattern in @("secrets/*", "!secrets/.env.template", "config/tool-selection.json", "generated/*")) {
             if ($ignoreText -notmatch [regex]::Escape($pattern)) {
                 $errors += ".gitignore does not protect '$pattern'."
             }
@@ -876,8 +920,8 @@ function Invoke-ValidateKit {
         "googleusercontent\.com",
         "C:\\Users\\[^\\]+",
         "Downloads\\[^\\]+",
-        "refresh_token",
-        "private_key",
+        "refresh_token\s*[:=]",
+        "private_key\s*[:=]",
         "project[_-]?id\s*[:=]\s*['""]?[a-z][a-z0-9-]{4,}[a-z0-9]",
         "GTM-[A-Z0-9]{6,}",
         "G-[A-Z0-9]{6,}",
@@ -970,6 +1014,7 @@ function Invoke-Doctor {
 function Invoke-OnboardingReport {
     New-Item -ItemType Directory -Force $GeneratedDir | Out-Null
     $reportPath = Join-Path $GeneratedDir "onboarding-report.md"
+    $statePath = Join-Path $GeneratedDir "onboarding-state.json"
     $selectionFile = if (Test-Path -LiteralPath $SelectionPath) { $SelectionPath } else { $SelectionExamplePath }
     $selection = Read-JsonFile -Path $selectionFile
     $toolRows = @(Get-ToolStatusRows -UseExampleWhenLocalSelectionMissing)
@@ -1045,7 +1090,33 @@ function Invoke-OnboardingReport {
     $lines += "- Confirm before using write-capable MCPs, costly BigQuery queries, or browser tools on sensitive logged-in pages."
 
     Set-Content -LiteralPath $reportPath -Value $lines -Encoding UTF8
+    $state = [PSCustomObject]@{
+        generatedAt = $generatedAt
+        profile = $profileName
+        sourceSelectionFile = $selectionFile.Substring($Root.Path.Length + 1)
+        selectedTools = @($enabledRows | ForEach-Object {
+            [PSCustomObject]@{
+                tool = $_.Tool
+                displayName = $_.DisplayName
+                provider = $_.Provider
+                kind = $_.Kind
+                runtime = $_.Runtime
+                auth = $_.Auth
+                credentialState = $_.CredentialState
+                status = $_.Status
+                nextStep = $_.NextStep
+            }
+        })
+        credentialKeys = @($credentialKeys)
+        reminders = @(
+            "Keep local credentials and tokens after a real onboarding so daily tools keep working.",
+            "Run ResetKit only after a test, when leaving a client/company, or before sharing the reusable folder.",
+            "Confirm before using write-capable MCPs, costly BigQuery queries, or browser tools on sensitive logged-in pages."
+        )
+    }
+    Write-JsonFile -Object $state -Path $statePath
     Write-Host "Wrote onboarding report: $reportPath"
+    Write-Host "Wrote onboarding state: $statePath"
 }
 
 function Get-SelectedCatalogItems {
@@ -1982,6 +2053,18 @@ switch ($Action) {
     }
     "OnboardingReport" {
         Invoke-OnboardingReport
+    }
+    "ReleaseAudit" {
+        Invoke-ReleaseAudit
+    }
+    "CatalogReview" {
+        Invoke-CatalogReview
+    }
+    "ItRequest" {
+        Invoke-ItRequest
+    }
+    "TestFixtures" {
+        Invoke-TestFixtures
     }
     "Prereqs" {
         Ensure-LocalFiles

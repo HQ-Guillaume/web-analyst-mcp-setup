@@ -8,6 +8,8 @@ The goal is first-day success on a new company PC: install prerequisites, config
 
 Use `scripts/WebAnalystSetup.ps1` as the deterministic layer for Windows prerequisites, profiles, validation, diagnostics, MCP config generation, status checks, Google OAuth helper files, onboarding reports, and resets. Keep agent prose for choices, credentials, and guided browser/vendor-console steps.
 
+Use `config/client-capabilities.json` when deciding where to write MCP configuration, whether project/user config is supported, and whether the selected client is likely to need a restart or MCP login command.
+
 ## User Action Policy
 
 - If a task can be done with local tools, do it.
@@ -19,6 +21,7 @@ Use `scripts/WebAnalystSetup.ps1` as the deterministic layer for Windows prerequ
 - Prefer credentials explicitly provided by the current company over asking the user to create a new Google Cloud project.
 - If the company approves a managed-auth MCP broker, prefer that over asking the user to create a personal Google Cloud project.
 - Before installing or applying MCP config, run the MCP update check and use the latest package version for npm-based MCPs unless the catalog explicitly documents a temporary pin.
+- When a user or company does not want raw secrets in `secrets/.env.local`, use the supported `KEY_FILE` pattern from `secrets/.env.template`: write or receive an ignored local file path, keep the main key empty, and let the helper read the secret from that file.
 - Never reuse credentials from a previous employer or agency for a new company.
 - Do not ask the user to add an `iam.gserviceaccount.com` email unless they explicitly confirm an approved service-account setup for a tool outside the current GA4 flow.
 - Tell the user before routing work data through third-party hosted MCPs or managed-auth brokers.
@@ -29,6 +32,7 @@ Use `scripts/WebAnalystSetup.ps1` as the deterministic layer for Windows prerequ
 - After changing MCP config, check whether the active AI client can reload MCP servers. If not, tell the user a restart is needed before the current conversation can use the new tools.
 - Before relying on a hosted remote MCP URL from docs, test DNS and a basic HTTP/OAuth-discovery response. If the endpoint is dead or not an MCP endpoint, mark it unavailable instead of continuing the setup path.
 - Run `Validate` before changing reusable kit files or preparing a release.
+- Before a release, run `Validate`, `TestFixtures`, `CatalogReview`, and `ReleaseAudit`. Do not create a release if any command fails or if git shows unexpected tracked local state.
 - Run `Doctor` at the start of first-day setup when the user wants a machine readiness check.
 - End real onboarding with `OnboardingReport` unless the user says not to create local generated reports.
 
@@ -45,7 +49,7 @@ Run the kit as an onboarding workflow, not as a package installer. Keep the user
 7. Authenticate: open the relevant browser/login flow or guide the single external console step needed, then return to the conversation.
 8. Session reload: confirm whether the current AI client can see newly configured MCPs; restart only when the client cannot reload them.
 9. Verify: perform a harmless read-only smoke test per selected tool and identify the connected account, property, container, dataset, or site when possible.
-10. Handover: run `OnboardingReport`, summarize what is ready, what is blocked, what still needs company approval, and what not to touch without explicit permission.
+10. Handover: run `OnboardingReport`, summarize what is ready, what is blocked, what still needs company approval, and what not to touch without explicit permission. Use `generated/onboarding-state.json` for structured status when another agent or script needs to continue the setup.
 11. Retention or reset: after real onboarding, keep local credentials/tokens so the tools continue working. Run reset only after a test, when leaving a company/client, or when preparing the folder for reuse on another PC.
 
 ## Connection Strategy
@@ -149,6 +153,14 @@ This creates or updates ignored local files:
 - `secrets/.env.local`
 
 Tell the user which selected tools still need account login, a path, URL, or credential. Do not print secret values.
+
+If the selected tools need company approval, run:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action ItRequest
+```
+
+Use `generated/it-request.md` as the draft to explain the access request. Do not commit it.
 
 Run diagnostics before installing prerequisites:
 
@@ -326,6 +338,28 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetu
 ```
 
 Use `generated/onboarding-report.md` as a handover summary for the user. Do not commit it.
+
+`OnboardingReport` also writes `generated/onboarding-state.json`. Use this JSON when the setup needs to be resumed by another agent or checked programmatically.
+
+## Release And Maintenance
+
+When changing reusable kit files, keep changes catalog-driven where possible:
+
+- Update `config/mcp-catalog.json` for MCP/API provider choices.
+- Update `config/tool-profiles.json` for standard first-day bundles.
+- Update `config/client-capabilities.json` when a client adds or changes MCP config behavior.
+- Update `tests/fixtures/profile-server-names.json` whenever profile MCP server names intentionally change.
+
+Before publishing a release, run:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action Validate
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action TestFixtures
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action CatalogReview
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action ReleaseAudit
+```
+
+Then check `git status --short --ignored` and scan the tracked tree for local names, credential filenames, OAuth secrets, tokens, project IDs, GTM/GA IDs, and client-specific values before committing or creating a GitHub release.
 
 ## Daily Analyst Standards
 

@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Web Analyst MCP Client Capabilities",
+  "type": "object",
+  "required": ["clients"],
+  "properties": {
+    "clients": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "displayName",
+          "configTargets",
+          "supportsRemoteHttp",
+          "supportsProjectConfig",
+          "supportsMcpLogin",
+          "restartGuidance",
+          "notes"
+        ],
+        "properties": {
+          "displayName": { "type": "string" },
+          "configTargets": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "supportsRemoteHttp": { "type": "boolean" },
+          "supportsProjectConfig": { "type": "boolean" },
+          "supportsMcpLogin": {
+            "oneOf": [
+              { "type": "boolean" },
+              { "type": "string" }
+            ]
+          },
+          "supportsStaticOAuthClientForRemoteMcp": {
+            "oneOf": [
+              { "type": "boolean" },
+              { "type": "string" }
+            ]
+          },
+          "restartGuidance": { "type": "string" },
+          "notes": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.1.0 - Release readiness and scalable onboarding
+
+- Added client capability metadata for Codex, Claude Code, and Gemini CLI.
+- Added `ReleaseAudit`, `CatalogReview`, `TestFixtures`, and `ItRequest` actions.
+- Added profile fixture checks for expected MCP server names.
+- Added generated `onboarding-state.json` alongside the human onboarding report.
+- Added optional `KEY_FILE` secret loading so local env files can point to ignored secret files.
+- Expanded validation to parse all PowerShell modules and check the new support files.
+- Expanded GitHub Actions validation with fixture, catalog, and release-audit checks.
+
 ## v1.0.0 - First stable release
 
 - Added self-validation for reusable kit files, catalog metadata, profile references, and secret hygiene.
