@@ -34,7 +34,7 @@ Use `config/client-capabilities.json` when deciding where to write MCP configura
 - Run `Validate` before changing reusable kit files or preparing a release.
 - Before a release, run `Validate`, `TestFixtures`, `CatalogReview`, and `ReleaseAudit`. Do not create a release if any command fails or if git shows unexpected tracked local state.
 - Run `Doctor` at the start of first-day setup when the user wants a machine readiness check.
-- End real onboarding with `OnboardingReport` unless the user says not to create local generated reports.
+- End real onboarding with `OnboardingReport` unless the user says not to create local generated reports. This also writes the first-day checklist.
 
 ## First-Day Setup Model
 
@@ -49,7 +49,7 @@ Run the kit as an onboarding workflow, not as a package installer. Keep the user
 7. Authenticate: open the relevant browser/login flow or guide the single external console step needed, then return to the conversation.
 8. Session reload: confirm whether the current AI client can see newly configured MCPs; restart only when the client cannot reload them.
 9. Verify: perform a harmless read-only smoke test per selected tool and identify the connected account, property, container, dataset, or site when possible.
-10. Handover: run `OnboardingReport`, summarize what is ready, what is blocked, what still needs company approval, and what not to touch without explicit permission. Use `generated/onboarding-state.json` for structured status when another agent or script needs to continue the setup.
+10. Handover: run `OnboardingReport`, summarize what is ready, what is blocked, what still needs company approval, and what not to touch without explicit permission. Use `generated/first-day-checklist.md` for the action list and `generated/onboarding-state.json` for structured status when another agent or script needs to continue the setup.
 11. Retention or reset: after real onboarding, keep local credentials/tokens so the tools continue working. Run reset only after a test, when leaving a company/client, or when preparing the folder for reuse on another PC.
 
 ## Connection Strategy
@@ -340,6 +340,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetu
 Use `generated/onboarding-report.md` as a handover summary for the user. Do not commit it.
 
 `OnboardingReport` also writes `generated/onboarding-state.json`. Use this JSON when the setup needs to be resumed by another agent or checked programmatically.
+
+`OnboardingReport` also writes `generated/first-day-checklist.md`. Use this checklist as the concise day-one action list: ready smoke tests, missing credentials, login/token checks, approval-sensitive actions, and safety reminders.
 
 ## Release And Maintenance
 

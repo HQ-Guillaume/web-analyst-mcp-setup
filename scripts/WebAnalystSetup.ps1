@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [ValidateSet("Prepare", "UseProfile", "Validate", "Doctor", "OnboardingReport", "ReleaseAudit", "CatalogReview", "ItRequest", "TestFixtures", "Prereqs", "CheckMcpUpdates", "Generate", "Apply", "Status", "Dashboard", "RunMcp", "GoogleOAuthFile", "GoogleAdcLogin", "ResetKit", "ResetCodexMcp", "All")]
+    [ValidateSet("Prepare", "UseProfile", "Validate", "Doctor", "FirstDayChecklist", "OnboardingReport", "ReleaseAudit", "CatalogReview", "ItRequest", "TestFixtures", "Prereqs", "CheckMcpUpdates", "Generate", "Apply", "Status", "Dashboard", "RunMcp", "GoogleOAuthFile", "GoogleAdcLogin", "ResetKit", "ResetCodexMcp", "All")]
     [string]$Action = "Status",
 
     [ValidateSet("All", "Codex", "Claude", "Gemini")]
@@ -782,6 +782,7 @@ function Invoke-ValidateKit {
         "secrets\.env.template",
         "scripts\WebAnalystSetup.ps1",
         "scripts\lib\CatalogReview.ps1",
+        "scripts\lib\FirstDayChecklist.ps1",
         "scripts\lib\ItRequest.ps1",
         "scripts\lib\ReleaseAudit.ps1",
         "scripts\lib\TestFixtures.ps1",
@@ -1115,6 +1116,7 @@ function Invoke-OnboardingReport {
         )
     }
     Write-JsonFile -Object $state -Path $statePath
+    Invoke-FirstDayChecklist
     Write-Host "Wrote onboarding report: $reportPath"
     Write-Host "Wrote onboarding state: $statePath"
 }
@@ -2050,6 +2052,9 @@ switch ($Action) {
     }
     "Doctor" {
         Invoke-Doctor
+    }
+    "FirstDayChecklist" {
+        Invoke-FirstDayChecklist
     }
     "OnboardingReport" {
         Invoke-OnboardingReport

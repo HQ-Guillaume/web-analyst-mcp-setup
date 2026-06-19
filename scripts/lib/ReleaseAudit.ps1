@@ -25,6 +25,26 @@ function Invoke-ReleaseAudit {
         $errors += "Could not list tracked files with git ls-files."
     }
 
+    $statusLines = @(git status --porcelain --untracked-files=all)
+    if ($LASTEXITCODE -ne 0) {
+        $errors += "Could not inspect working tree status with git status."
+    } elseif ($statusLines.Count -gt 0) {
+        $releasableDirty = @()
+        foreach ($statusLine in $statusLines) {
+            $pathText = $statusLine.Substring(3).Trim()
+            if ($pathText -match " -> ") { $pathText = ($pathText -split " -> ")[-1].Trim() }
+            $normalizedPath = $pathText -replace "\\", "/"
+            if ($normalizedPath -like "generated/*") { continue }
+            if ($normalizedPath -eq "config/tool-selection.json") { continue }
+            if ($normalizedPath -like "secrets/*" -and $normalizedPath -ne "secrets/.env.template") { continue }
+            if ($normalizedPath -in @(".mcp.json", ".codex/config.toml", ".gemini/settings.json")) { continue }
+            $releasableDirty += $statusLine
+        }
+        if ($releasableDirty.Count -gt 0) {
+            $errors += "Working tree has uncommitted releasable changes. Commit, revert, or intentionally exclude them before release: $($releasableDirty -join '; ')"
+        }
+    }
+
     $forbiddenTracked = @(
         "secrets/.env.local",
         "config/tool-selection.json",
@@ -32,6 +52,7 @@ function Invoke-ReleaseAudit {
         "generated/codex.config-snippet.toml",
         "generated/onboarding-report.md",
         "generated/onboarding-state.json",
+        "generated/first-day-checklist.md",
         "generated/catalog-review.md",
         "generated/fixture-test-report.md",
         "generated/it-request.md",

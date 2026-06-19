@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.1.1 - First-day checklist patch
+
+- Added `FirstDayChecklist` output in ignored `generated/first-day-checklist.md`.
+- Updated `OnboardingReport` to generate the first-day checklist automatically.
+- Tightened `ReleaseAudit` so releases fail when reusable files have uncommitted changes.
+
 ## v1.1.0 - Release readiness and scalable onboarding
 
 - Added client capability metadata for Codex, Claude Code, and Gemini CLI.

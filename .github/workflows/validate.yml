@@ -65,6 +65,7 @@ jobs:
             "generated/codex.config-snippet.toml",
             "generated/onboarding-report.md",
             "generated/onboarding-state.json",
+            "generated/first-day-checklist.md",
             "generated/catalog-review.md",
             "generated/fixture-test-report.md",
             "generated/it-request.md",

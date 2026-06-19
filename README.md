@@ -1,6 +1,6 @@
 # Web Analyst MCP Setup
 
-Version: 1.1.0
+Version: 1.1.1
 
 Windows-first setup kit for daily web analyst work with AI agents such as Codex, Claude Code, and Gemini CLI.
 
@@ -91,7 +91,8 @@ These commands are not required in normal use. The agent should run them for you
 - `Apply`: writes MCP configuration for the selected AI client.
 - `Dashboard`: prints enabled tools, missing credentials, and reconnect/auth commands in the terminal.
 - `Status`: checks selected tool status, visible MCP client state, and lightweight Google token scope/API reachability where possible.
-- `OnboardingReport`: writes an ignored handover report to `generated/onboarding-report.md` and machine-readable state to `generated/onboarding-state.json`.
+- `FirstDayChecklist`: writes an ignored action checklist to `generated/first-day-checklist.md`.
+- `OnboardingReport`: writes an ignored handover report to `generated/onboarding-report.md`, machine-readable state to `generated/onboarding-state.json`, and the first-day checklist.
 - `CatalogReview`: writes an ignored catalog maintainability report to `generated/catalog-review.md`.
 - `TestFixtures`: checks reusable profile expectations against `tests/fixtures/profile-server-names.json`.
 - `ReleaseAudit`: validates the kit, checks tracked files for local state or credential patterns, and builds an audit archive from git.
@@ -107,6 +108,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetu
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action Apply -Client Codex
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action Dashboard
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action Status
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action FirstDayChecklist
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action OnboardingReport
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action CatalogReview
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action TestFixtures
