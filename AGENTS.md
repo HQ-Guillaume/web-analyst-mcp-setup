@@ -29,6 +29,7 @@ Use `config/client-capabilities.json` when deciding where to write MCP configura
 - Treat "token file exists" as incomplete. Run the kit status check or a lightweight tool test before telling the user a connection works.
 - Treat setup as four separate states: MCP config written, account authenticated, tool visible in the current AI session, and a harmless test passed.
 - During setup smoke tests, stay read-only by default. Do not send email, delete files, publish containers, edit tags, move messages/files, run costly SQL, or change vendor settings unless the user explicitly asks for that action.
+- During MCP setup only, never delete, remove, reset, revoke, publish, deploy, or otherwise change MCP endpoint/server/container/project-facing state unless the user explicitly approves it. State the exact target ID/name and action before execution.
 - After changing MCP config, check whether the active AI client can reload MCP servers. If not, tell the user a restart is needed before the current conversation can use the new tools.
 - Before relying on a hosted remote MCP URL from docs, test DNS and a basic HTTP/OAuth-discovery response. If the endpoint is dead or not an MCP endpoint, mark it unavailable instead of continuing the setup path.
 - Run `Validate` before changing reusable kit files or preparing a release.
@@ -41,7 +42,7 @@ Use `config/client-capabilities.json` when deciding where to write MCP configura
 Run the kit as an onboarding workflow, not as a package installer. Keep the user inside the conversation as much as possible.
 
 1. Intake: identify AI client, selected tools, company/client context, policy constraints, and whether approved credentials or a vault item exist.
-2. Profile: when the user wants a standard setup, apply `minimal`, `google-workspace`, `analytics-core`, `browser-testing`, or `full-web-analyst` with `UseProfile`.
+2. Tool selection: choose tools directly with the user and write `config/tool-selection.json`. Do not use profiles in the default execution flow yet.
 3. Preflight: run `Doctor`, then inspect Windows version, shell, PATH, existing Node/npm/Git/Python/gcloud, installed/default browser, and existing MCP client config before installing anything.
 4. Credential route: choose the lowest-friction approved route for each selected tool: browser OAuth, company OAuth client, vendor token, managed broker, or last-resort Google Cloud setup.
 5. Minimal install: install only prerequisites required by the selected providers. Prefer Node for day-one local MCPs, but allow official non-Node providers when trust matters more than convenience.
@@ -49,7 +50,7 @@ Run the kit as an onboarding workflow, not as a package installer. Keep the user
 7. Authenticate: open the relevant browser/login flow or guide the single external console step needed, then return to the conversation.
 8. Session reload: confirm whether the current AI client can see newly configured MCPs; restart only when the client cannot reload them.
 9. Verify: perform a harmless read-only smoke test per selected tool and identify the connected account, property, container, dataset, or site when possible.
-10. Handover: run `OnboardingReport`, summarize what is ready, what is blocked, what still needs company approval, and what not to touch without explicit permission. Use `generated/first-day-checklist.md` for the action list and `generated/onboarding-state.json` for structured status when another agent or script needs to continue the setup.
+10. Handover: run `OnboardingReport`, summarize the configuration status per MCP, what is ready, what still needs company approval, what needs client reload, and what not to touch without explicit permission. Treat `generated/onboarding-report.md` and `generated/first-day-checklist.md` as user-facing local files. Treat `generated/onboarding-state.json` as internal resume state for agents/scripts and do not present it as a user document unless the user asks.
 11. Retention or reset: after real onboarding, keep local credentials/tokens so the tools continue working. Run reset only after a test, when leaving a company/client, or when preparing the folder for reuse on another PC.
 
 ## Connection Strategy
@@ -72,7 +73,7 @@ Use catalog decision metadata when explaining provider choices:
 - GA4: use only the official Google Analytics MCP provider `googleanalytics-official-adc` with `analytics-mcp` through `pipx`. Authenticate with Google ADC/browser login using the user's own Google account and approved company OAuth credentials when available. Do not add another GA4 provider unless the user explicitly asks.
 - Browser QA: official Playwright MCP. Use it as the default browser automation route for journeys, consent checks, ecommerce paths, forms, screenshots, and repeatable QA. The setup helper should detect the Windows default or installed browser and prefer Edge/Chrome/Brave/Firefox launch args before asking to install a new browser.
 - Browser Debug: official Chrome DevTools MCP. Treat it as optional/advanced for console, network, screenshots, performance traces, and DevTools-level investigation. It can use Chrome or a compatible Chromium browser such as Edge via an executable path. Tell the user before using it on logged-in or sensitive pages because browser content is exposed to the MCP client.
-- BigQuery: official Google Cloud remote BigQuery MCP when the company approves MCP/IAM access. Confirm project, dataset, region if needed, and least-privilege roles before analysis. Use Google MCP Toolbox for Databases as the fallback when the company requires local control, parameterized tools, or allowlisted queries.
+- BigQuery: official Google Cloud remote BigQuery MCP when the company approves MCP/IAM access. Confirm project, dataset, region if needed, and least-privilege roles before analysis. If Codex remote OAuth cannot register dynamically, offer the short-term ADC bearer-token route from `BigQueryAdcBearerToken` and warn that it expires quickly and requires client reload. Use Google MCP Toolbox for Databases as the fallback when the company requires local control, parameterized tools, or allowlisted queries.
 - ClickUp: official remote MCP when OAuth works in the selected client.
 - Trello: current third-party MCP candidate because no clear first-party Trello MCP was found.
 - Piano Analytics: official private-beta MCP when the user is whitelisted; otherwise use the Piano API connector option.
@@ -94,6 +95,8 @@ For each enabled tool, report progress using this vocabulary:
 - `Authenticated`: the user completed OAuth or supplied the required approved credential.
 - `Visible`: the active AI client can list or call the MCP tools in the current session.
 - `Verified`: a read-only smoke test passed and the target account/project/container/site was identified.
+
+Always prioritize the nearest-to-functional MCPs first. Complete browser-auth or no-auth tools such as GTM, Browser QA, and Browser Debug before spending time on tools that need longer Google Cloud or IAM work such as GA4 or BigQuery, unless the user asks otherwise.
 
 ## Activation Flow
 
@@ -121,21 +124,7 @@ After the user answers, update `config/tool-selection.json` yourself. If it does
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action Prepare
 ```
 
-If the user chooses a standard setup instead of individual tools, run:
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action UseProfile -Profile analytics-core
-```
-
-Use the closest profile, then edit `config/tool-selection.json` yourself for any additions or removals.
-
-Available profiles:
-
-- `minimal`: Browser QA only.
-- `google-workspace`: Google Drive and Gmail.
-- `analytics-core`: GTM, GA4, BigQuery, and Browser QA.
-- `browser-testing`: Browser QA and Browser Debug.
-- `full-web-analyst`: broad setup for approved company onboarding.
+Profiles exist only as dormant/manual scaffolding for future standard bundles. Do not apply a profile during normal setup unless the user explicitly asks to test profile behavior.
 
 ## Setup Steps
 
@@ -154,13 +143,7 @@ This creates or updates ignored local files:
 
 Tell the user which selected tools still need account login, a path, URL, or credential. Do not print secret values.
 
-If the selected tools need company approval, run:
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action ItRequest
-```
-
-Use `generated/it-request.md` as the draft to explain the access request. Do not commit it.
+If selected tools need company approval, explain the missing credential or access in the conversation. If the user asks for a formal request, draft it directly from the selected tools and current configuration status.
 
 Run diagnostics before installing prerequisites:
 
@@ -267,12 +250,13 @@ Do not start here. Use this only when the company has not provided OAuth credent
 Guide the user interactively instead of relying on frozen click-by-click console text. Google Console labels move over time; use current official Google docs/links when a screen is unclear.
 
 1. Create or select a Google Cloud project for this company/client.
-2. Enable only the APIs needed by selected tools, for example Gmail API, Gmail MCP API, Google Drive API, Drive MCP API, Analytics Admin API, Analytics Data API, or BigQuery API.
-3. Configure Google Auth Platform / OAuth consent for the appropriate audience. For personal/testing setup, keep the app in testing and add the signed-in account as a test user when Google requires it.
-4. Create an OAuth client ID for a desktop/installed app when using local browser OAuth helpers.
-5. Copy only the client ID and client secret into `secrets/.env.local`; do not paste them into docs or generated config.
-6. Run `GoogleOAuthFile`, then run the relevant browser auth command or `GoogleAdcLogin`.
-7. Run `Status` and one lightweight read-only tool test before declaring the connection ready.
+2. Enable only the APIs needed by selected tools. For local third-party Drive/Gmail MCPs, the user grants scopes during browser OAuth, but the underlying Google APIs such as Drive, Docs, Sheets, Slides, Calendar, or Gmail may still need to be enabled on the OAuth project.
+3. Configure Google Auth Platform / OAuth consent for the appropriate audience. This defines who may sign in to the OAuth app and which scopes the app is allowed to request; it is different from IAM roles.
+4. Create an OAuth client ID for a desktop/installed app when using local browser OAuth helpers. The MCP browser login uses the client ID/secret plus the user's own Google account.
+5. Configure IAM only for tools that access Google Cloud resources such as BigQuery, or where the official MCP documentation explicitly requires IAM roles. IAM does not replace OAuth scopes for Gmail/Drive browser login.
+6. Copy only the client ID and client secret into `secrets/.env.local`; do not paste them into docs or generated config.
+7. Run `GoogleOAuthFile`, then run the relevant browser auth command or `GoogleAdcLogin`.
+8. Run `Status` and one lightweight read-only tool test before declaring the connection ready.
 
 If APIs can be enabled via `gcloud` and the user has the needed project permission, do that from the conversation. Otherwise ask the user to perform only the specific Console step needed, then continue setup.
 
@@ -297,10 +281,10 @@ It also removes known kit-owned Google OAuth/token JSON files under `%USERPROFIL
 If the user also wants Codex MCP entries removed from the current PC, run:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action ResetCodexMcp
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetup.ps1 -Action ResetCodexMcp -ConfirmedMcpEndpointDeletion
 ```
 
-This removes only the Web Analyst MCP block and server names known to this kit, then leaves other Codex settings alone.
+This removes only the Web Analyst MCP block and server names known to this kit, then leaves other Codex settings alone. During MCP setup, obtain explicit approval and state the exact MCP config targets before running it.
 
 ### 6. Test
 
@@ -318,7 +302,7 @@ Then test lightly from the active AI client:
 
 | Tool | Lightweight test |
 | --- | --- |
-| Google Drive | List 5 recent files. |
+| Google Drive | Treat it as Google Workspace: list 5 recent files, then check one Docs item, one Sheets item, one Slides item when available, and Calendar visibility when that scope/API is selected. |
 | Gmail | List labels. |
 | GTM | List accounts or containers. |
 | GA4 | List GA4 accounts/properties or run a minimal read-only report. |
@@ -339,7 +323,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\WebAnalystSetu
 
 Use `generated/onboarding-report.md` as a handover summary for the user. Do not commit it.
 
-`OnboardingReport` also writes `generated/onboarding-state.json`. Use this JSON when the setup needs to be resumed by another agent or checked programmatically.
+`OnboardingReport` also writes `generated/onboarding-state.json`. This is internal resume state for agents/scripts, not a primary user-facing document.
 
 `OnboardingReport` also writes `generated/first-day-checklist.md`. Use this checklist as the concise day-one action list: ready smoke tests, missing credentials, login/token checks, approval-sensitive actions, and safety reminders.
 
@@ -348,7 +332,7 @@ Use `generated/onboarding-report.md` as a handover summary for the user. Do not 
 When changing reusable kit files, keep changes catalog-driven where possible:
 
 - Update `config/mcp-catalog.json` for MCP/API provider choices.
-- Update `config/tool-profiles.json` for standard first-day bundles.
+- Keep `config/tool-profiles.json` dormant until profile-to-MCP choices are intentionally designed and tested.
 - Update `config/client-capabilities.json` when a client adds or changes MCP config behavior.
 - Update `tests/fixtures/profile-server-names.json` whenever profile MCP server names intentionally change.
 

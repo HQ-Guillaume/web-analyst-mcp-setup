@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.2.0 - Cleaner first-day setup flow
+
+- Changed the default onboarding flow to direct tool selection; reusable profiles remain dormant/manual until profile-to-MCP choices are designed.
+- Removed the generated access-request helper flow; access requests should now be drafted in conversation only when the user asks.
+- Improved MCP status handover with clearer user-facing generated files, configuration status, setup order, and read-only smoke-test reminders.
+- Added safer local auth helpers for Drive/Gmail token refresh and BigQuery short-lived bearer-token fallback.
+- Clarified reset behavior: keep local credentials after real onboarding, and reset only after tests, client exits, sharing, or fresh simulations.
+- Removed stale test-specific safety wording and dead helper code.
+
 ## v1.1.1 - First-day checklist patch
 
 - Added `FirstDayChecklist` output in ignored `generated/first-day-checklist.md`.
@@ -9,7 +18,7 @@
 ## v1.1.0 - Release readiness and scalable onboarding
 
 - Added client capability metadata for Codex, Claude Code, and Gemini CLI.
-- Added `ReleaseAudit`, `CatalogReview`, `TestFixtures`, and `ItRequest` actions.
+- Added `ReleaseAudit`, `CatalogReview`, and `TestFixtures` actions.
 - Added profile fixture checks for expected MCP server names.
 - Added generated `onboarding-state.json` alongside the human onboarding report.
 - Added optional `KEY_FILE` secret loading so local env files can point to ignored secret files.
@@ -24,7 +33,7 @@
 - Added reusable tool profiles: `minimal`, `google-workspace`, `analytics-core`, `browser-testing`, and `full-web-analyst`.
 - Added catalog decision metadata for maintainability: officialness, auth friction, runtime, data exposure, write capability, risk level, and verification date.
 - Added JSON schemas for catalog, tool selection, and profiles.
-- Added IT request templates and data/credential safety guidance.
+- Added data/credential safety guidance.
 - Added GitHub Actions validation workflow.
 
 ## v0.1.0 - Initial release

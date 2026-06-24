@@ -19,6 +19,7 @@ Before connecting a company account to a remote MCP, confirm whether the provide
 - If a team prefers not to place raw values in `secrets/.env.local`, use the supported `KEY_FILE` pattern from `secrets/.env.template`. Keep the main key empty, point `KEY_FILE` to an ignored local file, and let the helper read the secret at runtime.
 - Never commit OAuth client secrets, access tokens, refresh tokens, API keys, service-account JSON files, or generated MCP config containing machine paths.
 - Treat token-file presence as incomplete. A connection is ready only after a harmless read-only smoke test passes.
+- During MCP setup, never delete, reset, revoke, publish, deploy, or otherwise change MCP endpoint/server/container/project-facing state without explicit approval. State the exact target ID/name and action before doing it.
 
 ## Scope Rules
 

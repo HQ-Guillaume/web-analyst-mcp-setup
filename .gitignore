@@ -8,3 +8,4 @@ generated/*
 .gemini/settings.json
 node_modules/
 npm-debug.log*
+.playwright-mcp/

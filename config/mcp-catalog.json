@@ -22,6 +22,13 @@
     "requiredScopes": [
       "https://www.googleapis.com/auth/drive.readonly"
     ],
+    "requiredGoogleServices": [
+      "drive.googleapis.com",
+      "docs.googleapis.com",
+      "sheets.googleapis.com",
+      "slides.googleapis.com",
+      "calendar-json.googleapis.com"
+    ],
     "credentialKeys": [
       "GOOGLE_OAUTH_CLIENT_JSON",
       "GDRIVE_CREDENTIALS_PATH"
@@ -32,9 +39,9 @@
       "GOOGLE_ADC_CLIENT_JSON",
       "GDRIVE_OAUTH_PATH"
     ],
-    "authCommand": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\\WebAnalystSetup.ps1 -Action GoogleOAuthFile; powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\\WebAnalystSetup.ps1 -Action RunMcp -ServerName google-drive -Runner npx -Package \"@piotr-agier/google-drive-mcp@latest\" -McpArgs auth",
-    "notes": "Default day-one Node path for Google Drive because it is easy to run locally with npx and browser OAuth. It is not Google official and can request broad Drive/Docs/Sheets/Slides/Calendar scopes depending on configuration, so use current-company approved OAuth credentials and prefer read-only scopes where possible. Use provider google-drive-official-remote when the selected MCP client and company policy support Google's official remote MCP custom OAuth route.",
-    "testPrompt": "List 5 recent Google Drive files.",
+    "authCommand": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\\WebAnalystSetup.ps1 -Action GoogleOAuthFile; powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\\WebAnalystSetup.ps1 -Action RunMcp -ServerName google-drive -Runner npx -Package \"@piotr-agier/google-drive-mcp@latest\" -McpArgs auth; powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\\WebAnalystSetup.ps1 -Action RefreshGoogleDriveToken",
+    "notes": "Default day-one Node path for Google Drive because it is easy to run locally with npx and browser OAuth. Treat this as a Google Workspace MCP, not only Drive storage: it can expose Drive, Docs, Sheets, Slides, and Calendar tools depending on scopes and enabled Google APIs. It is not Google official and can request broad Drive/Docs/Sheets/Slides/Calendar scopes depending on configuration, so use current-company approved OAuth credentials and prefer read-only scopes where possible. Use provider google-drive-official-remote when the selected MCP client and company policy support Google's official remote MCP custom OAuth route.",
+    "testPrompt": "Read-only smoke test: list a Drive folder item, run a Docs API metadata/tab check on one Google Doc, run a Sheets API metadata check on one Google Sheet, run a Slides API metadata check on one presentation if one exists, and check Calendar visibility when that scope/API is selected.",
     "providers": {
       "google-drive-official-remote": {
         "displayName": "Google Drive (official remote fallback)",
@@ -98,6 +105,9 @@
     "requiredScopes": [
       "https://www.googleapis.com/auth/gmail.modify",
       "https://www.googleapis.com/auth/gmail.settings.basic"
+    ],
+    "requiredGoogleServices": [
+      "gmail.googleapis.com"
     ],
     "credentialKeys": [
       "GOOGLE_OAUTH_CLIENT_JSON",
@@ -285,6 +295,7 @@
     "authMode": "company_oauth_remote",
     "url": "https://bigquery.googleapis.com/mcp",
     "serverName": "bigquery",
+    "bearerTokenEnvVar": "BIGQUERY_MCP_ACCESS_TOKEN",
     "requiredGoogleServices": [
       "bigquery.googleapis.com"
     ],
@@ -296,11 +307,12 @@
       "GOOGLE_PROJECT_ID",
       "GOOGLE_CLIENT_ID",
       "GOOGLE_CLIENT_SECRET",
+      "BIGQUERY_MCP_ACCESS_TOKEN",
       "BIGQUERY_PROJECT_ID",
       "BIGQUERY_DATASETS"
     ],
-    "authCommand": null,
-    "notes": "Official remote BigQuery MCP. Prefer company-approved Google Cloud IAM with least-privilege roles such as MCP Tool User, BigQuery Job User, and BigQuery Data Viewer. Use read-only datasets, dry-runs or query limits where possible, and ask for project/dataset IDs before analysis. Fallback: Google MCP Toolbox for Databases when the company needs local control, parameterized tools, or allowlisted queries.",
+    "authCommand": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\\WebAnalystSetup.ps1 -Action GoogleAdcLogin; powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\\WebAnalystSetup.ps1 -Action BigQueryAdcBearerToken",
+    "notes": "Official remote BigQuery MCP. Prefer company-approved Google Cloud IAM with least-privilege roles such as MCP Tool User, BigQuery Job User, and BigQuery Data Viewer. Use read-only datasets, dry-runs or query limits where possible, and ask for project/dataset IDs before analysis. BigQuery does not use API keys. In Codex, if remote OAuth login fails with dynamic client registration not supported, the day-one short-term option is to generate a short-lived ADC bearer token into BIGQUERY_MCP_ACCESS_TOKEN and configure bearer_token_env_var; this usually expires in about one hour and should be regenerated/reloaded when needed. Long-term fallback: Google MCP Toolbox for Databases when the company needs local control, parameterized tools, or allowlisted queries.",
     "testPrompt": "List accessible BigQuery projects or datasets, then run only a small metadata/read-only test."
   },
   "clickup": {
